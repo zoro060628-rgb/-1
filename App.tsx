@@ -6,11 +6,9 @@ import {
   CheckCircleIcon, 
   ArrowRightIcon, 
   PlusIcon, 
-  TrashIcon,
-  BrainIcon
+  TrashIcon
 } from './components/Icons';
-import { generateActionPlan, evaluateStudyConcept, generateDailyRoutine } from './services/geminiService';
-import { ActionStep, StudyFeedback, Task, Concept, Habit } from './types';
+import { Task, Concept, Habit } from './types';
 
 // === HELPER HOOK FOR LOCAL STORAGE ===
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void] {
@@ -50,9 +48,6 @@ const App: React.FC = () => {
   const ProactivityTab = () => {
     const [newTask, setNewTask] = useState('');
     const [confirmReopenId, setConfirmReopenId] = useState<string | null>(null);
-    const [isAiGenerating, setIsAiGenerating] = useState(false);
-    const [aiSteps, setAiSteps] = useState<ActionStep[]>([]);
-    const [showAiResults, setShowAiResults] = useState(false);
 
     const incompleteTasks = tasks.filter(t => !t.isComplete).sort((a, b) => b.createdAt - a.createdAt);
     const completedTasks = tasks.filter(t => t.isComplete).sort((a, b) => b.createdAt - a.createdAt);
@@ -74,32 +69,6 @@ const App: React.FC = () => {
         handleAddTask(newTask);
         setNewTask('');
       }
-    };
-
-    const handleAiBreakdown = async () => {
-        if (!newTask.trim()) return;
-        setIsAiGenerating(true);
-        setShowAiResults(true);
-        try {
-            const steps = await generateActionPlan(newTask);
-            setAiSteps(steps);
-        } catch (e) {
-            console.error(e);
-            alert("AI 계획 생성 중 오류가 발생했습니다.");
-        } finally {
-            setIsAiGenerating(false);
-        }
-    };
-
-    const addAiStepToTasks = (stepTitle: string) => {
-        handleAddTask(stepTitle);
-    };
-
-    const addAllAiSteps = () => {
-        aiSteps.forEach(step => handleAddTask(step.title));
-        setAiSteps([]);
-        setShowAiResults(false);
-        setNewTask('');
     };
 
     const toggleProactiveStatus = (taskId: string) => {
@@ -152,47 +121,6 @@ const App: React.FC = () => {
                     <PlusIcon className="w-6 h-6" />
                 </button>
             </div>
-            
-            {/* AI Helper Button */}
-            <button
-                type="button"
-                onClick={handleAiBreakdown}
-                disabled={!newTask.trim() || isAiGenerating}
-                className="self-start text-xs flex items-center gap-1 text-indigo-400 bg-indigo-900/20 px-3 py-1.5 rounded-full border border-indigo-500/20 active:scale-95 transition"
-            >
-                {isAiGenerating ? (
-                    <span className="animate-pulse">AI 분석 중...</span>
-                ) : (
-                    <>
-                        <BrainIcon className="w-3.5 h-3.5" />
-                        AI로 목표 쪼개기
-                    </>
-                )}
-            </button>
-
-            {/* AI Results Area */}
-            {showAiResults && aiSteps.length > 0 && (
-                <div className="bg-gray-800 border border-indigo-500/30 rounded-2xl p-4 mb-2 shadow-lg">
-                    <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-indigo-300 font-semibold text-sm">AI 추천 단계</h4>
-                        <div className="flex gap-2">
-                            <button onClick={addAllAiSteps} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg active:scale-95 transition">모두 추가</button>
-                            <button onClick={() => setShowAiResults(false)} className="text-xs bg-gray-700 text-white px-3 py-1.5 rounded-lg active:scale-95 transition">닫기</button>
-                        </div>
-                    </div>
-                    <ul className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
-                        {aiSteps.map((step) => (
-                            <li key={step.stepNumber} className="flex justify-between items-center bg-gray-900/50 p-3 rounded-xl text-sm text-gray-300 border border-gray-700/50">
-                                <div className="flex flex-col">
-                                    <span className="font-medium">{step.stepNumber}. {step.title}</span>
-                                    <span className='text-gray-500 text-xs mt-0.5'>{step.estimatedTime}</span>
-                                </div>
-                                <button onClick={() => addAiStepToTasks(step.title)} className="text-xs text-indigo-400 bg-indigo-900/20 px-3 py-1.5 rounded-lg ml-2 whitespace-nowrap active:scale-95 transition">추가</button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
         </div>
 
         <div className="space-y-4">
@@ -290,11 +218,7 @@ const App: React.FC = () => {
   const StudyTab = () => {
     const [topic, setTopic] = useState('');
     const [confidence, setConfidence] = useState(7);
-    const [explanation, setExplanation] = useState('');
-    const [showAiTutor, setShowAiTutor] = useState(false);
-    const [aiFeedback, setAiFeedback] = useState<StudyFeedback | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-
+    
     const scoreColors = useMemo(() => [
         'bg-red-600', 'bg-red-500', 'bg-orange-500', 'bg-orange-400',
         'bg-yellow-500', 'bg-yellow-400', 'bg-green-500', 'bg-green-600',
@@ -308,35 +232,16 @@ const App: React.FC = () => {
             id: Date.now().toString(),
             topic: topic.trim(),
             confidenceScore: confidence,
-            createdAt: Date.now(),
-            aiFeedback: aiFeedback ? aiFeedback.encouragement : undefined
+            createdAt: Date.now()
         };
         setConcepts(prev => [newConcept, ...prev]);
         setTopic('');
         setConfidence(7);
-        setExplanation('');
-        setAiFeedback(null);
-        setShowAiTutor(false);
       }
     };
 
     const deleteConcept = (id: string) => {
         setConcepts(prev => prev.filter(c => c.id !== id));
-    };
-
-    const handleAiCheck = async () => {
-        if (!topic.trim() || !explanation.trim()) return;
-        setIsLoading(true);
-        try {
-            const feedback = await evaluateStudyConcept(topic, explanation);
-            setAiFeedback(feedback);
-            setConfidence(Math.round(feedback.score / 10)); // Convert 100 scale to 10 scale
-        } catch (e) {
-            console.error(e);
-            alert("AI 분석 중 오류가 발생했습니다.");
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     return (
@@ -351,63 +256,16 @@ const App: React.FC = () => {
         </div>
 
         <div className="bg-gray-800 p-5 rounded-2xl shadow-lg border border-gray-700 space-y-5">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-100">오늘 배운 내용</h3>
-                <button 
-                    type="button" 
-                    onClick={() => setShowAiTutor(!showAiTutor)}
-                    className={`text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition active:scale-95
-                        ${showAiTutor ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-700 text-gray-300 border-gray-600'}`}
-                >
-                    <BrainIcon className="w-3.5 h-3.5" />
-                    {showAiTutor ? "AI 튜터 끄기" : "AI 튜터 켜기"}
-                </button>
-            </div>
-            
-            {showAiTutor && (
-                <div className="bg-gray-900/50 p-4 rounded-xl border border-emerald-500/30 space-y-3 animate-fade-in">
-                    <p className="text-xs text-gray-400">설명하면 AI가 이해도를 분석하고 점수를 추천합니다.</p>
-                    <input
-                        type="text"
-                        value={topic}
-                        onChange={(e) => setTopic(e.target.value)}
-                        placeholder="주제 (예: React Hooks)"
-                        className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-200 text-sm focus:border-emerald-500 focus:outline-none"
-                    />
-                    <textarea
-                        value={explanation}
-                        onChange={(e) => setExplanation(e.target.value)}
-                        placeholder="설명해보세요..."
-                        className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-200 text-sm h-24 focus:border-emerald-500 focus:outline-none resize-none"
-                    />
-                    <button
-                        onClick={handleAiCheck}
-                        disabled={isLoading || !explanation.trim()}
-                        className="w-full py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 active:scale-95 transition text-sm font-bold flex justify-center items-center gap-2"
-                    >
-                        {isLoading ? <span className="animate-spin text-lg">↻</span> : "AI 점검 받기"}
-                    </button>
-                    {aiFeedback && (
-                        <div className="mt-2 text-sm text-gray-300 bg-gray-800 p-3 rounded-xl border border-gray-700">
-                            <p className="font-bold text-emerald-400 mb-1 text-base">AI 점수: {aiFeedback.score}점</p>
-                            <p className="mb-2 leading-relaxed">{aiFeedback.encouragement}</p>
-                            <p className="text-xs text-gray-500 italic mt-2 border-t border-gray-700 pt-2">"나의 자신감" 점수가 자동 조정되었습니다.</p>
-                        </div>
-                    )}
-                </div>
-            )}
-
+            <h3 className="text-lg font-bold text-gray-100">오늘 배운 내용 기록</h3>
             <form onSubmit={handleAddConcept} className="space-y-5">
-                {!showAiTutor && (
-                    <input
-                        type="text"
-                        value={topic}
-                        onChange={(e) => setTopic(e.target.value)}
-                        placeholder="공부한 주제 입력..."
-                        className="w-full p-4 border border-gray-700 rounded-xl bg-gray-900 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        required
-                    />
-                )}
+                <input
+                    type="text"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="공부한 주제 입력..."
+                    className="w-full p-4 border border-gray-700 rounded-xl bg-gray-900 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    required
+                />
                 <div className="space-y-2">
                     <div className="flex justify-between items-end px-1">
                         <label className="text-gray-400 text-sm font-medium">이해도 자가 진단</label>
@@ -444,7 +302,6 @@ const App: React.FC = () => {
                                 <p className="font-bold text-gray-100 text-lg truncate">{concept.topic}</p>
                                 <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                     {new Date(concept.createdAt).toLocaleDateString()} 
-                                    {concept.aiFeedback && <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded ml-1">AI 인증</span>}
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
@@ -474,7 +331,6 @@ const App: React.FC = () => {
   // === RHYTHM LOGIC ===
   const RhythmTab = () => {
     const [newHabitName, setNewHabitName] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
     const today = new Date().toISOString().split('T')[0];
 
     const handleAddHabit = (name: string) => {
@@ -493,21 +349,6 @@ const App: React.FC = () => {
         if (newHabitName.trim()) {
             handleAddHabit(newHabitName);
             setNewHabitName('');
-        }
-    };
-
-    const handleGenerateRoutine = async () => {
-        setIsGenerating(true);
-        try {
-            const plan = await generateDailyRoutine("07:00", "23:00", ["공부", "운동"]);
-            plan.items.slice(0, 3).forEach(item => {
-                handleAddHabit(`${item.time} ${item.activity}`);
-            });
-            alert("AI가 추천한 루틴이 추가되었습니다!");
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setIsGenerating(false);
         }
     };
 
@@ -556,15 +397,6 @@ const App: React.FC = () => {
                     <PlusIcon className="w-6 h-6" />
                 </button>
             </form>
-            
-            <button 
-                onClick={handleGenerateRoutine}
-                disabled={isGenerating}
-                className="self-start text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-pink-500/20 bg-pink-900/10 active:scale-95 transition"
-            >
-                <BrainIcon className="w-3.5 h-3.5" /> 
-                {isGenerating ? "루틴 생성 중..." : "AI 루틴 추천받기"}
-            </button>
         </div>
 
         <div className="space-y-4">
