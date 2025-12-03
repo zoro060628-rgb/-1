@@ -2,28 +2,35 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="/manifest.json" />
     <title>Pro-Gro: 적극적 성장 코치</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Pretendard', sans-serif;
+        overscroll-behavior-y: none; /* 당겨서 새로고침 방지 (앱 느낌) */
+        background-color: #000000;
       }
-      /* Custom scrollbar for webkit */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
       }
-      ::-webkit-scrollbar-track {
-        background: #1f2937; 
+      /* Hide scrollbar for IE, Edge and Firefox */
+      .scrollbar-hide {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
       }
-      ::-webkit-scrollbar-thumb {
-        background: #4b5563; 
-        border-radius: 4px;
+      /* Safe area padding for iPhones */
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #6b7280; 
+      .pt-safe {
+        padding-top: env(safe-area-inset-top);
       }
     </style>
   <script type="importmap">
@@ -33,14 +40,14 @@
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "vite": "https://aistudiocdn.com/vite@^7.2.6"
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
 </head>
-  <body class="bg-gray-900 text-gray-100 antialiased selection:bg-indigo-500 selection:text-white">
-    <div id="root"></div>
+  <body class="bg-black text-gray-100 antialiased selection:bg-indigo-500 selection:text-white h-[100dvh] overflow-hidden">
+    <div id="root" class="h-full w-full"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

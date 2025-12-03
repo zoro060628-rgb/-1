@@ -7,8 +7,7 @@ import {
   ArrowRightIcon, 
   PlusIcon, 
   TrashIcon,
-  BrainIcon,
-  SendIcon
+  BrainIcon
 } from './components/Icons';
 import { generateActionPlan, evaluateStudyConcept, generateDailyRoutine } from './services/geminiService';
 import { ActionStep, StudyFeedback, Task, Concept, Habit } from './types';
@@ -126,29 +125,31 @@ const App: React.FC = () => {
     };
 
     return (
-      <div className="space-y-6 animate-fade-in">
-        <h2 className="text-2xl font-bold text-gray-100 border-b border-gray-700 pb-2 flex items-center gap-2">
-            <ZapIcon className="text-yellow-400" /> 적극성 향상 훈련 (5분 실행)
-        </h2>
-        <p className="text-yellow-200 bg-yellow-900/40 p-3 rounded-lg border border-yellow-700/50">
-          **5분 실행 규칙:** 너무 어려워 보이는 일도 일단 5분 동안만 시작하면 적극성을 높일 수 있습니다. '5분 실행하기' 버튼을 누르고, 실제로 5분만 해보세요!
-        </p>
+      <div className="space-y-6 pb-4 animate-fade-in">
+        <div className="bg-yellow-900/30 p-4 rounded-2xl border border-yellow-700/30">
+          <h3 className="text-yellow-400 font-bold mb-1 flex items-center gap-2">
+            <ZapIcon className="w-5 h-5" /> 5분 실행 규칙
+          </h3>
+          <p className="text-yellow-200/80 text-sm leading-relaxed">
+            하기 싫은 일도 딱 5분만 해보세요. 일단 시작하면 뇌는 계속하고 싶어합니다.
+          </p>
+        </div>
 
         <div className="flex flex-col gap-3">
-            <div className="flex gap-2">
+            <div className="relative">
                 <input
                     type="text"
                     value={newTask}
                     onChange={(e) => setNewTask(e.target.value)}
-                    placeholder="해야 할 일 (미루고 있는 일)을 입력하세요."
-                    className="flex-1 p-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-gray-900 text-gray-100 placeholder-gray-500"
+                    placeholder="미루고 있는 일 입력..."
+                    className="w-full p-4 pr-14 border border-gray-700 rounded-2xl bg-gray-800 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm"
                 />
                 <button 
                     onClick={handleSubmit}
                     disabled={!newTask.trim()}
-                    className="bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-500 transition flex items-center font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="absolute right-2 top-2 bottom-2 bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-indigo-500 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
                 >
-                    <PlusIcon className="w-5 h-5 mr-1" /> 추가
+                    <PlusIcon className="w-6 h-6" />
                 </button>
             </div>
             
@@ -157,33 +158,36 @@ const App: React.FC = () => {
                 type="button"
                 onClick={handleAiBreakdown}
                 disabled={!newTask.trim() || isAiGenerating}
-                className="self-start text-xs flex items-center gap-1 text-indigo-400 hover:text-indigo-300 transition px-2 py-1 rounded"
+                className="self-start text-xs flex items-center gap-1 text-indigo-400 bg-indigo-900/20 px-3 py-1.5 rounded-full border border-indigo-500/20 active:scale-95 transition"
             >
                 {isAiGenerating ? (
-                    <span className="animate-pulse">AI가 분석 중입니다...</span>
+                    <span className="animate-pulse">AI 분석 중...</span>
                 ) : (
                     <>
-                        <BrainIcon className="w-4 h-4" />
-                        AI에게 이 목표를 세분화해달라고 요청하기
+                        <BrainIcon className="w-3.5 h-3.5" />
+                        AI로 목표 쪼개기
                     </>
                 )}
             </button>
 
             {/* AI Results Area */}
             {showAiResults && aiSteps.length > 0 && (
-                <div className="bg-gray-800/80 border border-indigo-500/30 rounded-lg p-4 mb-4">
+                <div className="bg-gray-800 border border-indigo-500/30 rounded-2xl p-4 mb-2 shadow-lg">
                     <div className="flex justify-between items-center mb-3">
                         <h4 className="text-indigo-300 font-semibold text-sm">AI 추천 단계</h4>
                         <div className="flex gap-2">
-                            <button onClick={addAllAiSteps} className="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-500">모두 추가</button>
-                            <button onClick={() => setShowAiResults(false)} className="text-xs bg-gray-700 text-white px-2 py-1 rounded hover:bg-gray-600">닫기</button>
+                            <button onClick={addAllAiSteps} className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg active:scale-95 transition">모두 추가</button>
+                            <button onClick={() => setShowAiResults(false)} className="text-xs bg-gray-700 text-white px-3 py-1.5 rounded-lg active:scale-95 transition">닫기</button>
                         </div>
                     </div>
-                    <ul className="space-y-2">
+                    <ul className="space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
                         {aiSteps.map((step) => (
-                            <li key={step.stepNumber} className="flex justify-between items-center bg-gray-900/50 p-2 rounded text-sm text-gray-300 border border-gray-700/50">
-                                <span>{step.stepNumber}. {step.title} <span className='text-gray-500 text-xs'>({step.estimatedTime})</span></span>
-                                <button onClick={() => addAiStepToTasks(step.title)} className="text-xs text-indigo-400 hover:text-white px-2">추가</button>
+                            <li key={step.stepNumber} className="flex justify-between items-center bg-gray-900/50 p-3 rounded-xl text-sm text-gray-300 border border-gray-700/50">
+                                <div className="flex flex-col">
+                                    <span className="font-medium">{step.stepNumber}. {step.title}</span>
+                                    <span className='text-gray-500 text-xs mt-0.5'>{step.estimatedTime}</span>
+                                </div>
+                                <button onClick={() => addAiStepToTasks(step.title)} className="text-xs text-indigo-400 bg-indigo-900/20 px-3 py-1.5 rounded-lg ml-2 whitespace-nowrap active:scale-95 transition">추가</button>
                             </li>
                         ))}
                     </ul>
@@ -191,101 +195,91 @@ const App: React.FC = () => {
             )}
         </div>
 
-        <div className="bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-700/50">
-          <h3 className="p-4 bg-gray-700/50 font-semibold text-gray-100 border-b border-gray-700 flex justify-between items-center">
-             <span>미완료 과제</span>
-             <span className="text-xs bg-gray-600 px-2 py-1 rounded-full">{incompleteTasks.length}</span>
-          </h3>
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider ml-1">할 일 목록 ({incompleteTasks.length})</h3>
           {incompleteTasks.length > 0 ? (
-            <div>
+            <div className="space-y-3">
                 {incompleteTasks.map(task => (
-                    <div key={task.id} className="flex items-center justify-between p-3 border-b border-gray-700/50 last:border-b-0 hover:bg-gray-700/30 transition duration-150">
-                        <span className="flex-1 text-gray-100 font-medium">
-                            {task.text}
-                        </span>
-                        <div className="flex items-center space-x-2">
+                    <div key={task.id} className="bg-gray-800 p-4 rounded-2xl border border-gray-700 shadow-sm flex flex-col gap-3">
+                        <div className="flex justify-between items-start">
+                             <span className="text-gray-100 font-medium text-lg leading-snug break-all">
+                                {task.text}
+                            </span>
+                             <button
+                                onClick={() => deleteTask(task.id)}
+                                className="text-gray-600 p-1 -mr-2 -mt-2 active:scale-90 transition"
+                            >
+                                <TrashIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+                       
+                        <div className="flex items-center gap-2 pt-1">
                             <button
                                 onClick={() => toggleProactiveStatus(task.id)}
-                                className={`px-3 py-1 text-xs font-bold rounded-full transition duration-200 border 
+                                className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-bold transition-all active:scale-95 flex justify-center items-center gap-2 border
                                     ${task.isProactiveDone 
-                                        ? 'bg-green-600/20 text-green-400 border-green-600/50 hover:bg-green-600/30' 
-                                        : 'bg-indigo-900/30 text-indigo-300 border-indigo-500/30 hover:bg-indigo-900/50'}`}
+                                        ? 'bg-green-500/10 text-green-400 border-green-500/30' 
+                                        : 'bg-indigo-600 text-white border-transparent shadow-lg shadow-indigo-900/50'}`}
                             >
-                                {task.isProactiveDone ? '5분 실행 완료' : '5분 실행하기'}
+                                {task.isProactiveDone ? <CheckCircleIcon className="w-4 h-4"/> : <ZapIcon className="w-4 h-4" />}
+                                {task.isProactiveDone ? '5분 완료됨' : '5분 시작'}
                             </button>
                             <button
                                 onClick={() => completeTask(task.id)}
-                                className="p-1.5 rounded-full text-green-500 hover:bg-green-900/30 transition duration-150"
+                                className="w-12 h-11 flex items-center justify-center rounded-xl bg-gray-700 text-gray-300 active:bg-green-600 active:text-white transition-colors active:scale-95"
                                 title="완료"
                             >
-                                <CheckCircleIcon className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={() => deleteTask(task.id)}
-                                className="p-1.5 rounded-full text-gray-500 hover:text-red-400 hover:bg-red-900/30 transition duration-150"
-                                title="삭제"
-                            >
-                                <TrashIcon className="w-5 h-5" />
+                                <CheckCircleIcon className="w-6 h-6" />
                             </button>
                         </div>
                     </div>
                 ))}
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-500 flex flex-col items-center">
+            <div className="py-12 text-center text-gray-500 flex flex-col items-center bg-gray-800/30 rounded-2xl border border-gray-800 border-dashed">
                 <CheckCircleIcon className="w-12 h-12 mb-3 opacity-20" />
-                <p>미루고 있는 일이 없습니다! 👍</p>
+                <p>할 일이 없습니다.<br/>편안한 하루 되세요!</p>
             </div>
           )}
         </div>
 
         {completedTasks.length > 0 && (
-            <div className="bg-gray-800 rounded-xl shadow-xl overflow-hidden opacity-80 border border-gray-700/50">
-                <h3 className="p-4 bg-gray-700/50 font-semibold text-gray-100 border-b border-gray-700">
-                    완료된 과제 ({completedTasks.length})
-                </h3>
+            <div className="space-y-2 opacity-80 pt-4">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider ml-1">완료됨 ({completedTasks.length})</h3>
+                <div className="space-y-2">
                 {completedTasks.map(task => (
                     <div 
                         key={task.id}
-                        className={`flex items-center justify-between p-3 border-b border-gray-700/50 last:border-b-0 transition duration-150 
-                            ${confirmReopenId === task.id ? 'bg-indigo-900/20 border-l-4 border-l-indigo-500' : 'hover:bg-gray-700/30'}`}
+                        onClick={() => setConfirmReopenId(confirmReopenId === task.id ? null : task.id)}
+                        className={`p-4 rounded-xl border transition-all duration-200
+                            ${confirmReopenId === task.id 
+                                ? 'bg-indigo-900/20 border-indigo-500/50' 
+                                : 'bg-gray-800/50 border-gray-800'}`}
                     >
-                        <span 
-                            className="flex-1 line-through text-gray-500 cursor-pointer select-none" 
-                            onClick={() => setConfirmReopenId(task.id)}
-                        >
-                            {task.text}
-                        </span>
-                        
-                        {confirmReopenId === task.id ? (
-                            <div className="flex items-center space-x-2 ml-4 animate-fade-in">
-                                <span className="text-xs text-indigo-300 hidden sm:inline">미완료로 되돌릴까요?</span>
-                                <button
-                                    onClick={() => {
-                                        reopenTask(task.id);
-                                        setConfirmReopenId(null);
-                                    }}
-                                    className="px-3 py-1 text-xs font-bold rounded bg-indigo-600 text-white hover:bg-indigo-500"
-                                >
-                                    Yes
-                                </button>
-                                <button
-                                    onClick={() => setConfirmReopenId(null)}
-                                    className="px-3 py-1 text-xs font-bold rounded bg-gray-600 text-gray-200 hover:bg-gray-500"
-                                >
-                                    No
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => deleteTask(task.id)}
-                                className="p-1.5 rounded-full text-gray-600 hover:text-red-400 hover:bg-red-900/30 transition duration-150"
-                            >
-                                <TrashIcon className="w-5 h-5" />
-                            </button>
-                        )}
+                        <div className="flex items-center justify-between">
+                            <span className="flex-1 line-through text-gray-500 select-none text-sm">
+                                {task.text}
+                            </span>
+                            {confirmReopenId === task.id ? (
+                                <div className="flex items-center gap-2 ml-3">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            reopenTask(task.id);
+                                            setConfirmReopenId(null);
+                                        }}
+                                        className="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-600 text-white"
+                                    >
+                                        복구
+                                    </button>
+                                </div>
+                            ) : (
+                                <TrashIcon className="w-4 h-4 text-gray-700" />
+                            )}
+                        </div>
                     </div>
                 ))}
+                </div>
             </div>
         )}
       </div>
@@ -346,111 +340,120 @@ const App: React.FC = () => {
     };
 
     return (
-      <div className="space-y-6 animate-fade-in">
-        <h2 className="text-2xl font-bold text-gray-100 border-b border-gray-700 pb-2 flex items-center gap-2">
-            <BookOpenIcon className="text-blue-400" /> 공부/이해 효율 강화 (메타 인지 훈련)
-        </h2>
-        <p className="text-blue-200 bg-blue-900/40 p-3 rounded-lg border border-blue-700/50">
-          **메타 인지 훈련:** 공부한 개념을 기록하고, 스스로 이해도를 점수(1~10점)로 평가해보세요. '나의 이해도'와 '실제 이해도'의 격차를 줄이는 것이 학습 효율의 핵심입니다.
-        </p>
+      <div className="space-y-6 pb-4 animate-fade-in">
+        <div className="bg-blue-900/30 p-4 rounded-2xl border border-blue-700/30">
+          <h3 className="text-blue-400 font-bold mb-1 flex items-center gap-2">
+            <BookOpenIcon className="w-5 h-5" /> 메타 인지 훈련
+          </h3>
+          <p className="text-blue-200/80 text-sm leading-relaxed">
+            아는 것과 안다고 착각하는 것을 구분하세요. 스스로 점수를 매겨보는 것이 시작입니다.
+          </p>
+        </div>
 
-        <div className="bg-gray-800 p-5 rounded-xl shadow-xl border border-gray-700/50 space-y-4">
+        <div className="bg-gray-800 p-5 rounded-2xl shadow-lg border border-gray-700 space-y-5">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-200">새로운 개념 기록</h3>
+                <h3 className="text-lg font-bold text-gray-100">오늘 배운 내용</h3>
                 <button 
                     type="button" 
                     onClick={() => setShowAiTutor(!showAiTutor)}
-                    className="text-xs flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition"
+                    className={`text-xs font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition active:scale-95
+                        ${showAiTutor ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-gray-700 text-gray-300 border-gray-600'}`}
                 >
-                    <BrainIcon className="w-4 h-4" />
-                    {showAiTutor ? "AI 튜터 닫기" : "AI 튜터에게 설명해보기"}
+                    <BrainIcon className="w-3.5 h-3.5" />
+                    {showAiTutor ? "AI 튜터 끄기" : "AI 튜터 켜기"}
                 </button>
             </div>
             
             {showAiTutor && (
-                <div className="bg-gray-900/50 p-4 rounded-lg border border-emerald-500/30 space-y-3">
-                    <p className="text-sm text-gray-400">주제에 대해 설명하면 AI가 이해도를 점검해줍니다.</p>
+                <div className="bg-gray-900/50 p-4 rounded-xl border border-emerald-500/30 space-y-3 animate-fade-in">
+                    <p className="text-xs text-gray-400">설명하면 AI가 이해도를 분석하고 점수를 추천합니다.</p>
                     <input
                         type="text"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        placeholder="주제 입력 (예: React Hooks)"
-                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-gray-200 text-sm focus:border-emerald-500"
+                        placeholder="주제 (예: React Hooks)"
+                        className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-200 text-sm focus:border-emerald-500 focus:outline-none"
                     />
                     <textarea
                         value={explanation}
                         onChange={(e) => setExplanation(e.target.value)}
-                        placeholder="이 개념을 설명해보세요..."
-                        className="w-full p-2 bg-gray-800 border border-gray-700 rounded text-gray-200 text-sm h-24 focus:border-emerald-500"
+                        placeholder="설명해보세요..."
+                        className="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-gray-200 text-sm h-24 focus:border-emerald-500 focus:outline-none resize-none"
                     />
                     <button
                         onClick={handleAiCheck}
                         disabled={isLoading || !explanation.trim()}
-                        className="w-full py-2 bg-emerald-600 text-white rounded hover:bg-emerald-500 text-sm font-bold flex justify-center items-center gap-2"
+                        className="w-full py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 active:scale-95 transition text-sm font-bold flex justify-center items-center gap-2"
                     >
-                        {isLoading ? <span className="animate-spin">⌛</span> : "AI 이해도 점검 받기"}
+                        {isLoading ? <span className="animate-spin text-lg">↻</span> : "AI 점검 받기"}
                     </button>
                     {aiFeedback && (
-                        <div className="mt-2 text-sm text-gray-300 bg-gray-800 p-3 rounded border border-gray-700">
-                            <p className="font-bold text-emerald-400 mb-1">점수: {aiFeedback.score}점</p>
-                            <p className="mb-2">{aiFeedback.encouragement}</p>
-                            <p className="text-xs text-gray-500 italic">"점수" 슬라이더가 AI 평가에 맞춰 자동 조정되었습니다.</p>
+                        <div className="mt-2 text-sm text-gray-300 bg-gray-800 p-3 rounded-xl border border-gray-700">
+                            <p className="font-bold text-emerald-400 mb-1 text-base">AI 점수: {aiFeedback.score}점</p>
+                            <p className="mb-2 leading-relaxed">{aiFeedback.encouragement}</p>
+                            <p className="text-xs text-gray-500 italic mt-2 border-t border-gray-700 pt-2">"나의 자신감" 점수가 자동 조정되었습니다.</p>
                         </div>
                     )}
                 </div>
             )}
 
-            <form onSubmit={handleAddConcept} className="space-y-4">
+            <form onSubmit={handleAddConcept} className="space-y-5">
                 {!showAiTutor && (
                     <input
                         type="text"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        placeholder="개념/주제 (예: RNN의 동작 원리)"
-                        className="w-full p-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-900 text-gray-100 placeholder-gray-500"
+                        placeholder="공부한 주제 입력..."
+                        className="w-full p-4 border border-gray-700 rounded-xl bg-gray-900 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                         required
                     />
                 )}
-                <div className="flex items-center space-x-4">
-                    <label className="text-gray-200 font-medium whitespace-nowrap text-sm">자신감 (1~10):</label>
+                <div className="space-y-2">
+                    <div className="flex justify-between items-end px-1">
+                        <label className="text-gray-400 text-sm font-medium">이해도 자가 진단</label>
+                        <span className={`text-2xl font-bold ${confidence >= 8 ? 'text-green-400' : confidence >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {confidence}<span className="text-sm text-gray-500 font-normal">/10</span>
+                        </span>
+                    </div>
                     <input
                         type="range"
                         min="1"
                         max="10"
                         value={confidence}
                         onChange={(e) => setConfidence(Number(e.target.value))}
-                        className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                        className="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                     />
-                    <span className={`text-xl font-bold w-8 text-center ${confidence >= 8 ? 'text-green-400' : confidence >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
-                        {confidence}
-                    </span>
+                    <div className="flex justify-between text-xs text-gray-600 px-1">
+                        <span>모름</span>
+                        <span>완벽함</span>
+                    </div>
                 </div>
-                <button type="submit" className="w-full bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-500 transition flex items-center justify-center font-bold">
-                    <BookOpenIcon className="w-5 h-5 mr-1" /> 기록 저장
+                <button type="submit" className="w-full bg-indigo-600 text-white p-4 rounded-xl shadow-lg shadow-indigo-900/50 hover:bg-indigo-500 active:scale-95 transition flex items-center justify-center font-bold text-lg">
+                    <PlusIcon className="w-5 h-5 mr-2" /> 기록하기
                 </button>
             </form>
         </div>
 
-        <div className="bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-700/50">
-            <h3 className="p-4 bg-gray-700/50 font-semibold text-gray-100 border-b border-gray-700">기록된 개념 ({concepts.length})</h3>
+        <div className="space-y-3">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider ml-1">기록 ({concepts.length})</h3>
             {concepts.length > 0 ? (
-                <div>
+                <div className="space-y-3">
                     {concepts.map(concept => (
-                        <div key={concept.id} className="flex items-center justify-between p-3 border-b border-gray-700/50 last:border-b-0 hover:bg-gray-700/30 transition duration-150">
+                        <div key={concept.id} className="bg-gray-800 p-4 rounded-2xl border border-gray-700 shadow-sm flex items-center justify-between gap-4">
                             <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-100 truncate">{concept.topic}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="font-bold text-gray-100 text-lg truncate">{concept.topic}</p>
+                                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                     {new Date(concept.createdAt).toLocaleDateString()} 
-                                    {concept.aiFeedback && " • AI 인증됨"}
+                                    {concept.aiFeedback && <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded ml-1">AI 인증</span>}
                                 </p>
                             </div>
-                            <div className="flex items-center space-x-3 ml-4">
-                                <span className={`px-3 py-1 text-sm font-bold text-white rounded-full ${scoreColors[concept.confidenceScore - 1] || 'bg-gray-600'}`}>
-                                    {concept.confidenceScore}점
+                            <div className="flex items-center gap-3">
+                                <span className={`w-10 h-10 flex items-center justify-center text-sm font-bold text-white rounded-full shadow-inner ${scoreColors[concept.confidenceScore - 1] || 'bg-gray-600'}`}>
+                                    {concept.confidenceScore}
                                 </span>
                                 <button
                                     onClick={() => deleteConcept(concept.id)}
-                                    className="p-1.5 rounded-full text-gray-600 hover:text-red-400 hover:bg-red-900/30 transition duration-150"
+                                    className="text-gray-600 p-2 -mr-2 active:scale-90 transition"
                                 >
                                     <TrashIcon className="w-5 h-5" />
                                 </button>
@@ -459,7 +462,9 @@ const App: React.FC = () => {
                     ))}
                 </div>
             ) : (
-                <p className="p-8 text-center text-gray-500">기록된 개념이 없습니다.</p>
+                <div className="py-8 text-center text-gray-500 bg-gray-800/30 rounded-2xl border border-gray-800 border-dashed">
+                    기록된 내용이 없습니다.
+                </div>
             )}
         </div>
       </div>
@@ -494,7 +499,6 @@ const App: React.FC = () => {
     const handleGenerateRoutine = async () => {
         setIsGenerating(true);
         try {
-            // Hardcoded time params for quick demo, but in real world could be inputs
             const plan = await generateDailyRoutine("07:00", "23:00", ["공부", "운동"]);
             plan.items.slice(0, 3).forEach(item => {
                 handleAddHabit(`${item.time} ${item.activity}`);
@@ -529,82 +533,89 @@ const App: React.FC = () => {
     const isTodayCompleted = (habit: Habit) => habit.lastCompletedDate === today;
 
     return (
-      <div className="space-y-6 animate-fade-in">
-        <h2 className="text-2xl font-bold text-gray-100 border-b border-gray-700 pb-2 flex items-center gap-2">
-            <ActivityIcon className="text-pink-400" /> 생활/운동 리듬 개선 강습 (습관 체인)
-        </h2>
-        <p className="text-pink-200 bg-pink-900/40 p-3 rounded-lg border border-pink-700/50">
-          **습관 체인:** 매일 실천할 핵심 습관을 설정하고, 연속 기록(Streak)을 깨지 않도록 관리합니다. 이제 습관 항목을 클릭하여 기록을 직접 누적하세요!
-        </p>
+      <div className="space-y-6 pb-4 animate-fade-in">
+        <div className="bg-pink-900/30 p-4 rounded-2xl border border-pink-700/30">
+          <h3 className="text-pink-400 font-bold mb-1 flex items-center gap-2">
+            <ActivityIcon className="w-5 h-5" /> 습관 체인
+          </h3>
+          <p className="text-pink-200/80 text-sm leading-relaxed">
+            매일 이어지는 작은 성공이 큰 변화를 만듭니다. 체인을 끊지 마세요.
+          </p>
+        </div>
 
-        <div className="flex flex-col gap-2">
-            <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="flex flex-col gap-3">
+            <form onSubmit={handleSubmit} className="relative">
                 <input
                     type="text"
                     value={newHabitName}
                     onChange={(e) => setNewHabitName(e.target.value)}
-                    placeholder="추가할 습관 (예: 7시 기상, 30분 운동)"
-                    className="flex-1 p-3 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-900 text-gray-100 placeholder-gray-500"
+                    placeholder="새로운 습관 (예: 물 마시기)"
+                    className="w-full p-4 pr-14 border border-gray-700 rounded-2xl bg-gray-800 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
-                <button type="submit" className="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-500 transition flex items-center font-medium">
-                    <PlusIcon className="w-5 h-5 mr-1" /> 추가
+                <button type="submit" className="absolute right-2 top-2 bottom-2 bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-indigo-500 active:scale-95 transition">
+                    <PlusIcon className="w-6 h-6" />
                 </button>
             </form>
             
             <button 
                 onClick={handleGenerateRoutine}
                 disabled={isGenerating}
-                className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1 ml-1 self-start px-2 py-1 rounded hover:bg-gray-800 transition"
+                className="self-start text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-pink-500/20 bg-pink-900/10 active:scale-95 transition"
             >
-                <BrainIcon className="w-4 h-4" /> 
-                {isGenerating ? "루틴 생성 중..." : "AI에게 간단한 루틴 추천받기"}
+                <BrainIcon className="w-3.5 h-3.5" /> 
+                {isGenerating ? "루틴 생성 중..." : "AI 루틴 추천받기"}
             </button>
         </div>
 
-        <div className="bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-700/50">
-            <h3 className="p-4 bg-gray-700/50 font-semibold text-gray-100 border-b border-gray-700 flex justify-between items-center">
-                <span>오늘의 습관</span>
-                <span className="text-xs text-gray-400">{habits.filter(isTodayCompleted).length} / {habits.length} 완료</span>
-            </h3>
+        <div className="space-y-4">
+            <div className="flex justify-between items-end px-1">
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">나의 습관</h3>
+                <span className="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded-lg border border-gray-700">
+                    오늘 {habits.filter(isTodayCompleted).length} / {habits.length} 완료
+                </span>
+            </div>
+            
             {habits.length > 0 ? (
-                <div>
+                <div className="space-y-3">
                     {habits.map(habit => {
                         const completed = isTodayCompleted(habit);
                         return (
                             <div 
                                 key={habit.id}
-                                className={`flex items-center justify-between p-3 border-b border-gray-700/50 last:border-b-0 transition duration-150 cursor-pointer select-none
-                                    ${completed ? 'bg-gray-700/30' : 'hover:bg-gray-700/30'}`}
+                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 select-none
+                                    ${completed ? 'bg-gray-800/40 border-gray-800 opacity-70' : 'bg-gray-800 border-gray-700 shadow-sm'}`}
                                 onClick={() => !completed && completeHabit(habit.id)}
                             >
-                                <div className="flex items-center space-x-3 flex-1">
-                                    <button
-                                        disabled={completed}
-                                        className={`p-2 rounded-full transition duration-200 ${completed ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-indigo-600 hover:text-white'}`}
-                                    >
-                                        {completed ? <CheckCircleIcon className="w-5 h-5" /> : <ActivityIcon className="w-5 h-5" />}
-                                    </button>
-                                    <span className={`font-medium text-gray-100 ${completed ? 'line-through text-gray-500' : ''}`}>
-                                        {habit.name}
-                                    </span>
+                                <div className="flex items-center gap-4 flex-1">
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                                        ${completed ? 'bg-green-600 text-white scale-110' : 'bg-gray-700 text-gray-500'}`}>
+                                        {completed ? <CheckCircleIcon className="w-6 h-6" /> : <ActivityIcon className="w-6 h-6" />}
+                                    </div>
+                                    <div>
+                                        <p className={`font-bold text-lg ${completed ? 'line-through text-gray-500' : 'text-gray-100'}`}>
+                                            {habit.name}
+                                        </p>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${habit.streak > 0 ? 'bg-pink-500/20 text-pink-400' : 'bg-gray-700 text-gray-500'}`}>
+                                                🔥 {habit.streak}일째
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-3 ml-4">
-                                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${habit.streak > 0 ? 'bg-pink-900/40 text-pink-300 border border-pink-700/50' : 'bg-gray-700 text-gray-400'}`}>
-                                        {habit.streak}일 연속
-                                    </span>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
-                                        className="p-1.5 rounded-full text-gray-600 hover:text-red-400 hover:bg-red-900/30"
-                                    >
-                                        <TrashIcon className="w-5 h-5" />
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); deleteHabit(habit.id); }}
+                                    className="text-gray-600 p-2 -mr-2 active:scale-90 transition"
+                                >
+                                    <TrashIcon className="w-5 h-5" />
+                                </button>
                             </div>
                         );
                     })}
                 </div>
             ) : (
-                <p className="p-8 text-center text-gray-500">아직 습관이 없습니다. 새로운 습관을 추가해 보세요!</p>
+                <div className="py-12 text-center text-gray-500 bg-gray-800/30 rounded-2xl border border-gray-800 border-dashed">
+                    <p>습관을 추가하고<br/>체인을 만들어보세요!</p>
+                </div>
             )}
         </div>
       </div>
@@ -613,73 +624,73 @@ const App: React.FC = () => {
 
   // === RENDER ===
   return (
-    <div className="min-h-screen bg-gray-900 p-4 sm:p-8 font-sans text-gray-100">
+    <div className="h-full w-full flex justify-center bg-black">
       <style>{`
-        input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 20px; width: 20px;
-            border-radius: 50%;
-            background: #6366f1;
-            cursor: pointer;
-            margin-top: -6px;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 8px;
-            cursor: pointer; background: #374151;
-            border-radius: 4px;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        /* Touch Action Optimizations */
+        button, input { touch-action: manipulation; }
       `}</style>
       
-      <div className="max-w-3xl mx-auto">
-        <header className="text-center mb-8">
-            <h1 className="text-4xl font-extrabold text-indigo-400 mb-2 flex items-center justify-center gap-3">
-                <ZapIcon className="w-10 h-10" /> Pro-Gro: 적극적 성장 코치
-            </h1>
-            <p className="text-gray-400 mb-4">적극성, 학습 효율, 생활 리듬 개선을 위한 통합 앱</p>
-            <div className="inline-block bg-gray-800 border border-gray-700 px-4 py-2 rounded-lg text-sm text-gray-300">
-                **현재 사용자:** <span className="font-semibold text-indigo-400">20253703 조해솔</span>
+      {/* Mobile Frame Container (Max width constraint for desktop) */}
+      <div className="w-full max-w-md bg-gray-900 h-full flex flex-col relative shadow-2xl overflow-hidden border-x border-gray-800/50">
+        
+        {/* Fixed Header */}
+        <header className="bg-gray-900/90 backdrop-blur-md border-b border-gray-800 p-4 pt-safe z-30 shrink-0">
+            <div className="flex justify-between items-center h-10">
+                <h1 className="text-xl font-extrabold text-indigo-400 flex items-center gap-2">
+                    <ZapIcon className="w-6 h-6" /> Pro-Gro
+                </h1>
+                <div className="bg-gray-800 border border-gray-700 px-3 py-1 rounded-full text-xs text-gray-300">
+                    <span className="font-semibold text-indigo-400">조해솔</span>님
+                </div>
             </div>
         </header>
 
-        <nav className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 p-2 bg-gray-800 rounded-xl shadow-lg mb-8 border border-gray-700">
-            <button
-                onClick={() => setActiveTab('proactivity')}
-                className={`flex-1 flex items-center justify-center py-3 px-4 rounded-lg text-sm font-bold transition-all duration-200
-                    ${activeTab === 'proactivity' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'}`}
-            >
-                <ArrowRightIcon className="w-4 h-4 mr-2" /> 1. 적극성 (5분 실행)
-            </button>
-            <button
-                onClick={() => setActiveTab('study')}
-                className={`flex-1 flex items-center justify-center py-3 px-4 rounded-lg text-sm font-bold transition-all duration-200
-                    ${activeTab === 'study' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'}`}
-            >
-                <BookOpenIcon className="w-4 h-4 mr-2" /> 2. 학습 효율 (이해도)
-            </button>
-            <button
-                onClick={() => setActiveTab('rhythm')}
-                className={`flex-1 flex items-center justify-center py-3 px-4 rounded-lg text-sm font-bold transition-all duration-200
-                    ${activeTab === 'rhythm' ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'}`}
-            >
-                <ActivityIcon className="w-4 h-4 mr-2" /> 3. 생활 리듬 (습관)
-            </button>
-        </nav>
-
-        <main className="p-6 bg-gray-800/50 border border-gray-700 rounded-2xl shadow-2xl backdrop-blur-sm min-h-[400px]">
-            {activeTab === 'proactivity' && <ProactivityTab />}
-            {activeTab === 'study' && <StudyTab />}
-            {activeTab === 'rhythm' && <RhythmTab />}
+        {/* Scrollable Main Content */}
+        <main className="flex-1 overflow-y-auto scrollbar-hide bg-gray-900 relative">
+            <div className="p-4 pb-24">
+                {activeTab === 'proactivity' && <ProactivityTab />}
+                {activeTab === 'study' && <StudyTab />}
+                {activeTab === 'rhythm' && <RhythmTab />}
+            </div>
         </main>
 
-        <footer className="mt-8 text-center text-xs text-gray-600 pb-8">
-            <p>인공지능(12421) 과제 제출용 앱 | LocalStorage 기반 데이터 관리 | Powered by Google Gemini</p>
-        </footer>
+        {/* Fixed Bottom Navigation */}
+        <nav className="absolute bottom-0 w-full bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 pb-safe z-40">
+            <div className="flex justify-around items-center h-16 px-2">
+                <button
+                    onClick={() => setActiveTab('proactivity')}
+                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90
+                        ${activeTab === 'proactivity' ? 'text-indigo-400' : 'text-gray-500 hover:text-gray-400'}`}
+                >
+                    <div className={`p-1 rounded-xl transition-colors ${activeTab === 'proactivity' ? 'bg-indigo-400/10' : ''}`}>
+                        <ArrowRightIcon className={`w-6 h-6 ${activeTab === 'proactivity' ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                    </div>
+                    <span className="text-[10px] font-bold tracking-wide">적극성</span>
+                </button>
+                
+                <button
+                    onClick={() => setActiveTab('study')}
+                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90
+                        ${activeTab === 'study' ? 'text-blue-400' : 'text-gray-500 hover:text-gray-400'}`}
+                >
+                    <div className={`p-1 rounded-xl transition-colors ${activeTab === 'study' ? 'bg-blue-400/10' : ''}`}>
+                        <BookOpenIcon className={`w-6 h-6 ${activeTab === 'study' ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                    </div>
+                    <span className="text-[10px] font-bold tracking-wide">학습</span>
+                </button>
+                
+                <button
+                    onClick={() => setActiveTab('rhythm')}
+                    className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all active:scale-90
+                        ${activeTab === 'rhythm' ? 'text-pink-400' : 'text-gray-500 hover:text-gray-400'}`}
+                >
+                     <div className={`p-1 rounded-xl transition-colors ${activeTab === 'rhythm' ? 'bg-pink-400/10' : ''}`}>
+                        <ActivityIcon className={`w-6 h-6 ${activeTab === 'rhythm' ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                     </div>
+                    <span className="text-[10px] font-bold tracking-wide">습관</span>
+                </button>
+            </div>
+        </nav>
       </div>
     </div>
   );
